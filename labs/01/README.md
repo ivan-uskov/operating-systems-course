@@ -326,6 +326,24 @@ sudo apt install g++
 sudo apt install cmake
 ```
 
+Если работа с Linux происходит под WSL, то для генерирования CMake-проектов проектов нужно явно указать каталоги с исходниками:
+
+```bash
+# Предполагается, что в текущей директории содержится файл CMakeLists.txt
+mkdir build
+
+cd build
+
+# Явно указываем, что CMakeLists.txt находится в родительском каталоге, а проекты сгенерировать в текущем
+cmake -S .. -B .
+
+# Когда Linux запущен не из WSL, предыдущую команду можно заменить на:
+cmake ..
+
+# Собираем проект, сгенерированный в текущем каталоге
+cmake --build .
+```
+
 ## ССылки
 
 - [Список Windows API](https://learn.microsoft.com/en-us/windows/win32/apiindex/windows-api-list)
