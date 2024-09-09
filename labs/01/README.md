@@ -298,7 +298,7 @@ man cd
 #!/usr/bin/env bash
 # Предыдущая строка сообщает загрузчику программы, что надо использовать оболочку bash
 
-# Если любая из следующий команд завершится неудачей, скрипт прекратит свою работу
+# Если любая из следующих команд завершится неудачей, скрипт прекратит свою работу
 set -e
 
 # Тут поместите остальные команды
@@ -352,4 +352,7 @@ cmake --build .
 - [Intel® 64 and IA-32 Architectures Software Developer’s Manual](https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html)
   - Для доступа к сайту используйте VPN либо браузер Tor.
 - [Linux Pocket Guide](https://linuxpocketguide.com/)
+- [CMake с нуля](https://www.youtube.com/playlist?list=PL6x9Hnsyqn2UwWjSvjCzAY6sEOBrHY7VH) (Плейлист на Youtube)
+- Системы сборки make и CMake
+  ([YouTube](https://www.youtube.com/watch?v=KPlVqXsXKVA), [RuTube](https://rutube.ru/video/e5b49317d420d580fb04a5da2894b034/))
 - Принимаются Pull Request-ы
