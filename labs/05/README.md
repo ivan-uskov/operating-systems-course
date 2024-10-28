@@ -258,3 +258,4 @@ public:
 - Класс [`std::lock_guard`](https://en.cppreference.com/w/cpp/thread/lock_guard)
 - Класс [`std::conditional_variable`](https://en.cppreference.com/w/cpp/thread/condition_variable)
 - Класс [`std::stop_callback`](https://en.cppreference.com/w/cpp/thread/stop_callback)
+- Книга [C++ Concurrency in Action by Anthony Williams](https://www.manning.com/books/c-plus-plus-concurrency-in-action-second-edition)
