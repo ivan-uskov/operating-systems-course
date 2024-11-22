@@ -49,7 +49,7 @@ mydir
 |       [F] File 1.txt
 |       [F] File 2.txt
 |
-+---[D] Directory 2
+\---[D] Directory 2
     |   [F] input.txt
     |
     +---[D] Empty Dir 2
