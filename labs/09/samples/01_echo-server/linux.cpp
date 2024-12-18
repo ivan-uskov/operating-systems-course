@@ -1,13 +1,17 @@
-﻿#include <iostream>
+﻿#include <filesystem>
+#include <iostream>
 #include <netinet/in.h>
 #include <stdexcept>
 #include <sys/socket.h>
 #include <system_error>
 #include <unistd.h>
 #include <utility>
+#include <variant>
 
 namespace
 {
+
+namespace fs = std::filesystem;
 
 class FileDesc
 {
@@ -18,8 +22,8 @@ public:
 
 	explicit FileDesc(int desc)
 		: m_desc(desc == InvalidDesc || desc >= 0
-				? desc
-				: throw std::invalid_argument("Invalid file descriptor"))
+				  ? desc
+				  : throw std::invalid_argument("Invalid file descriptor"))
 	{
 	}
 
@@ -153,38 +157,114 @@ private:
 	FileDesc m_fd{ socket(AF_INET, SOCK_STREAM, /*protocol*/ 0) };
 };
 
-constexpr int Port = 8080;
+struct ClientMode
+{
+	std::string address;
+	uint16_t port;
+};
+
+struct ServerMode
+{
+	uint16_t port;
+};
+
+struct HelpMode
+{
+};
+
+using ProgramMode = std::variant<HelpMode, ClientMode, ServerMode>;
+
+constexpr uint16_t Port = 8080;
 constexpr size_t BufferSize = 1024;
+
+ProgramMode ParseCommandLine(int argc, char* argv[])
+{
+	if (argc < 2)
+	{
+		throw std::runtime_error(
+			"Invalid command line. Type " + fs::path(argv[0]).filename().string() + " -h for help.");
+	}
+
+	if (argc == 2 && std::string(argv[1]) == "-h")
+	{
+		return HelpMode{};
+	}
+
+	if (std::string(argv[1]) == "server")
+	{
+		if (argc != 3)
+		{
+			throw std::runtime_error("Invalid server command line parameters");
+		}
+		unsigned long port = std::stoul(argv[2]);
+		if (port < 1 || port >= std::numeric_limits<uint16_t>::max())
+		{
+			throw std::runtime_error("Invalid port");
+		}
+		return ServerMode{ .port = static_cast<uint16_t>(port) };
+	}
+
+	if (std::string(argv[1]) == "client")
+	{
+		if (argc != 4)
+		{
+			throw std::runtime_error("Invalid client command line parameters");
+		}
+		unsigned long port = std::stoul(argv[3]);
+		if (port < 1 || port >= std::numeric_limits<uint16_t>::max())
+		{
+			throw std::runtime_error("Invalid port");
+		}
+		return ClientMode{ .address = argv[2], .port = static_cast<uint16_t>(port) };
+		throw std::runtime_error("Invalid command line");
+	}
+	throw std::runtime_error("Invalid server command line parameters");
+}
+
+void Run(HelpMode)
+{
+}
+
+void Run(const ServerMode& mode)
+{
+	sockaddr_in serverAddr{
+		.sin_family = AF_INET,
+		.sin_port = htons(mode.port),
+		.sin_addr = { .s_addr = INADDR_ANY },
+		// The sin_port and sin_addr members are stored in network byte order.
+	};
+
+	Acceptor acceptor{ serverAddr, 5 };
+
+	std::cout << "Listening to the port " << Port << std::endl;
+
+	while (true)
+	{
+		std::cout << "Accepting" << std::endl;
+		auto clientSocket = acceptor.Accept();
+		std::cout << "Accepted" << std::endl;
+		char buffer[BufferSize];
+		for (size_t bytesRead; (bytesRead = clientSocket.Read(&buffer, sizeof(buffer))) > 0;)
+		{
+			clientSocket.Send(buffer, bytesRead, 0);
+		}
+		std::cout << "Client disconnected" << std::endl;
+	}
+}
+
+void Run(const ClientMode& mode)
+{
+	
+}
 
 } // namespace
 
-int main()
+int main(int argc, char* argv[])
 {
 	try
 	{
-		sockaddr_in serverAddr{
-			.sin_family = AF_INET,
-			.sin_port = htons(Port),
-			.sin_addr = { .s_addr = INADDR_ANY },
-			// The sin_port and sin_addr members are stored in network byte order.
-		};
-
-		Acceptor acceptor{ serverAddr, 5 };
-
-		std::cout << "Listening to the port " << Port << std::endl;
-
-		while (true)
-		{
-			std::cout << "Accepting" << std::endl;
-			auto clientSocket = acceptor.Accept();
-			std::cout << "Accepted" << std::endl;
-			char buffer[BufferSize];
-			for (size_t bytesRead; (bytesRead = clientSocket.Read(&buffer, sizeof(buffer))) > 0;)
-			{
-				clientSocket.Send(buffer, bytesRead, 0);
-			}
-			std::cout << "Client disconnected" << std::endl;
-		}
+		auto mode = ParseCommandLine(argc, argv);
+		std::visit([](const auto& mode) { Run(mode); }, mode);
 	}
 	catch (const std::exception& e)
 	{
