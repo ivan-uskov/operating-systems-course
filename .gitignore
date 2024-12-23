@@ -1,3 +1,4 @@
 build/
 .vs/
 *.drawio.bkp
+.vscode

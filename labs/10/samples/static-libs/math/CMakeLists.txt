@@ -1,0 +1,1 @@
+add_library(math STATIC math_functions.cpp)
